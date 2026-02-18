@@ -1,0 +1,5 @@
+numpy
+langchain
+langchain_groq
+langchain_core
+langchain_community
