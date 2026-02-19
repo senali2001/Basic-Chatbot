@@ -1,10 +1,7 @@
 # This is used to access environment variables (like API keys)
 import datetime
 import os 
-
-
-# This loads environment variables from a .env file into the system's environment variables, making them accessible via os.getenv()
-from dotenv import load_dotenv
+from dotenv import load_dotenv# This loads environment variables from a .env file into the system's environment variables, making them accessible via os.getenv()
 from langchain_groq import ChatGroq  #This allows us to use Groq's LLM through LangChain
 from langchain_core.prompts import ChatPromptTemplate # This helps us create structured prompts (system + user messages)
 from pymongo import MongoClient # This is the MongoDB client to connect to our database
@@ -17,7 +14,14 @@ load_dotenv()
 groq_api_key = os.getenv("GROQ_API_KEY")
 mongo_uri = os.getenv("MONGODB_URI")
 
-client = MongoClient(mongo_uri)
+client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
+
+try:
+    client.server_info()
+    print("✅ MongoDB Connected Successfully")
+except Exception as e:
+    print("❌ MongoDB Connection Failed")
+    print(e)
 db = client["chat"]
 collection = db["users"]
 
