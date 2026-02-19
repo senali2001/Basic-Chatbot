@@ -1,12 +1,14 @@
 # This is used to access environment variables (like API keys)
+from datetime import datetime
 import os 
+
 
 # This loads environment variables from a .env file into the system's environment variables, making them accessible via os.getenv()
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq  #This allows us to use Groq's LLM through LangChain
 from langchain_core.prompts import ChatPromptTemplate # This helps us create structured prompts (system + user messages)
 from pymongo import MongoClient # This is the MongoDB client to connect to our database
-
+from datetime import datetime # This is used to get the current timestamp when saving messages to the database
 
 # It reads your GROQ_API_KEY from the file
 load_dotenv()
@@ -43,8 +45,20 @@ while True:#trought loop we can ask multiple question without pre define
 
     if question.lower() in ["exit", "quit"]:
         break
-    response =chain.invoke({"question": question})
+    
+    response = chain.invoke({"question": question})
 
+    collection.insert_one({
+      "user_id": user_id,
+      "role": "user",
+      "message": question,
+      "timestamp": datetime.utcnow()
+    })
+    collection.insert_one({
+        "user_id": user_id,
+        "role": "assistant",
+        "message": response.content,
+        "timestamp": datetime.utcnow()
+    })
 
-
-
+    print(response.content)
