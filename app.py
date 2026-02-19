@@ -1,5 +1,5 @@
 # This is used to access environment variables (like API keys)
-from datetime import datetime
+import datetime
 import os 
 
 
@@ -15,10 +15,10 @@ load_dotenv()
 
 # This key is needed to connect to Groq API and use their language model services
 groq_api_key = os.getenv("GROQ_API_KEY")
-mongo_uri = os.getenv("MONGO_URI")
+mongo_uri = os.getenv("MONGODB_URI")
 
 client = MongoClient(mongo_uri)
-db = client["Chat-Bot"]
+db = client["chat"]
 collection = db["users"]
 
 
@@ -60,5 +60,4 @@ while True:#trought loop we can ask multiple question without pre define
         "message": response.content,
         "timestamp": datetime.utcnow()
     })
-
     print(response.content)
