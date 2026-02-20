@@ -4,3 +4,6 @@ langchain_groq
 langchain_core
 langchain_community
 pymongo
+fastapi
+uvicorn
+python-multipart
