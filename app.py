@@ -8,6 +8,8 @@ from pymongo import MongoClient # This is the MongoDB client to connect to our d
 from datetime import datetime # This is used to get the current timestamp when saving messages to the database
 from fastapi import FastAPI, Form # This is used to create a web server and handle form data
 from fastapi.middleware.cors import CORSMiddleware # This is used to handle Cross-Origin Resource Sharing (CORS) for our API
+from pydantic import BaseModel # This is used to define data models for request validation in FastAPI
+
 # It reads your GROQ_API_KEY from the file
 load_dotenv()
 
@@ -19,17 +21,19 @@ client = MongoClient(mongo_uri)
 db = client["chat"]
 collection = db["users"]
 
-#app = FastAPI()
+app = FastAPI()
 
+class ChatRequest(BaseModel):
+    user_id: str
+    question: str
 
-
-#app.add_middleware(
- #   CORSMiddleware,
-  #  allow_origins=["*"],  # Allow all origins (you can restrict this in production)
-   # allow_methods=["*"],  # Allow all HTTP methods
-    #allow_headers=["*"],  # Allow all headers
-    #allow_credentials=True,  # Allow cookies and credentials
-#)
+app.add_middleware(
+ CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins (you can restrict this in production)
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+    allow_credentials=True,  # Allow cookies and credentials
+)
 
 # Create a prompt template
 # It has:
@@ -48,7 +52,9 @@ prompt = ChatPromptTemplate.from_messages(
 llm = ChatGroq(api_key = groq_api_key, model="openai/gpt-oss-20b")# 20 billion parameter model from Groq, you can choose other models as well
 chain = prompt | llm
 
-user_id = "user123"#different users use this chat bot therefore i assigned userID to this
+
+#user_id = "user123"#different users use this chat bot therefore i assigned userID to this
+
 def get_history(user_id):
    chats = collection.find({"user_id": user_id}).sort("timestamp", 1) # Sort by timestamp in ascending order
    history = []
@@ -58,31 +64,29 @@ def get_history(user_id):
    return history
             
         
-#app.get("/")#root rout
-#def home():
-   # return {"message": "Welcome to the Chatbot API! interact with the incredible chatbot."}
+@app.get("/")#root rout
+def home():
+    return {"message": "Welcome to the Chatbot API! interact with the incredible chatbot."}
 
-while True:#trought loop we can ask multiple question without pre define
-    question = input ("Ask a question:")
-
-    if question.lower() in ["exit", "quit"]:
-        break
-    
-    history = get_history(user_id)
-
-
-    response = chain.invoke({"history": history, "question": question})
-
-    collection.insert_one({
-      "user_id": user_id,
-      "role": "user",
-      "message": question,
-      "timestamp": datetime.utcnow()
+@app.post("/chat")#chat route
+def chat(request: ChatRequest):
+        history = get_history(request.user_id)
+        response = chain.invoke({"history": history, "question": request.question})
+        
+        
+        collection.insert_one({
+             "user_id": request.user_id,
+             "role": "user",
+             "message": request.question,
+             "timestamp": datetime.utcnow()
     })
-    collection.insert_one({
-        "user_id": user_id,
-        "role": "assistant",
-        "message": response.content,
-        "timestamp": datetime.utcnow()
+        collection.insert_one({
+             "user_id": request.user_id,
+             "role": "assistant",
+             "message": response.content,
+             "timestamp": datetime.utcnow()
     })
-    print(response.content)
+        return {"response": response.content}
+
+
+
