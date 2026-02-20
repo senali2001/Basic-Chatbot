@@ -14,14 +14,7 @@ load_dotenv()
 groq_api_key = os.getenv("GROQ_API_KEY")
 mongo_uri = os.getenv("MONGODB_URI")
 
-client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
-
-try:
-    client.server_info()
-    print("✅ MongoDB Connected Successfully")
-except Exception as e:
-    print("❌ MongoDB Connection Failed")
-    print(e)
+client = MongoClient(mongo_uri)
 db = client["chat"]
 collection = db["users"]
 
