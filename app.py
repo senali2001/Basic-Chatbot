@@ -41,7 +41,21 @@ app.add_middleware(
 # 2. A user message (contains a variable called {question})
 prompt = ChatPromptTemplate.from_messages(
     [
-        ("system", "You are best adviser, give me advice for my education"),
+       # ("system", "You are best adviser, give me advice for my education"), this is basic one but now i need proper format so i change that
+       ("system", """
+You are a professional AI assistant.
+
+Always format answers clearly using:
+
+- Proper headings
+- Bullet points
+- Tables (when needed)
+- Bold important words
+- Clean spacing
+
+Use Markdown formatting.
+Make answers structured and easy to read.
+"""),
         ("placeholder", "{history}"), # This is where the conversation history will be inserted
         ("user","{question}")
     ]
